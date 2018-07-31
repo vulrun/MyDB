@@ -2735,7 +2735,40 @@ class MyDB {
 	 * @return string|array The name of the calling function
 	 */
 	public function get_caller() {
-		return debug_backtrace( __CLASS__ );
+		$pretty = true;
+		$skip_frames = 0;
+		$caller = array();
+		$ignore_class = null;
+
+
+		if ( version_compare( PHP_VERSION, '5.2.5', '>=' ) )
+			$trace = debug_backtrace( false );
+		else
+			$trace = debug_backtrace();
+
+		$skip_frames++; // skip this function
+
+		foreach ( $trace as $call ) {
+			if ( $skip_frames > 0 ) {
+				$skip_frames--;
+			} elseif ( isset( $call['class'] ) ) {
+				if ( !is_null( $ignore_class ) && $ignore_class == $call['class'] )
+					continue; // Filter out calls
+				$caller[] = "{$call['class']}{$call['type']}{$call['function']}";
+			} else {
+				if ( in_array( $call['function'], array( 'do_action', 'apply_filters' ) ) ) {
+					$caller[] = "{$call['function']}('{$call['args'][0]}')";
+				} elseif ( in_array( $call['function'], array( 'include', 'include_once', 'require', 'require_once' ) ) ) {
+					$caller[] = $call['function'] . "('" . str_replace( $_SERVER['DOCUMENT_ROOT'] , '', $call['args'][0] ) . "')";
+				} else {
+					$caller[] = $call['function'];
+				}
+			}
+		}
+		if ( $pretty )
+			return join( ', ', array_reverse( $caller ) );
+		else
+			return $caller;
 	}
 
 	/**
