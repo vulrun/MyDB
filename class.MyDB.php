@@ -1111,12 +1111,6 @@ class MyDB {
 
 		if ( ! $this->dbh && $allow_bail ) {
 
-		// Load custom DB error template, if present.
-			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
-				require_once( WP_CONTENT_DIR . '/db-error.php' );
-				die();
-			}
-
 			$message = '<h1>' . 'Error establishing a database connection' . "</h1>\n";
 
 			$message .= '<p>' . sprintf(
